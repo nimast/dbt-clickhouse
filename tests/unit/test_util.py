@@ -1,6 +1,18 @@
 from unittest.mock import patch
 
-from dbt.adapters.clickhouse.util import hide_stack_trace
+from dbt.adapters.clickhouse.util import compare_versions, hide_stack_trace
+
+
+def test_is_before_version():
+    assert compare_versions('20.0.0', '21.0.0') == -1
+    assert compare_versions('20.1.0', '21.0.0') == -1
+    assert compare_versions('20.1.1', '21.0.0') == -1
+    assert compare_versions('20.0.0', '21.0') == -1
+    assert compare_versions('21.0.0', '21.0.0') == 0
+    assert compare_versions('21.1.0', '21.0.0') == 1
+    assert compare_versions('22.0.0', '21.0.0') == 1
+    assert compare_versions('21.0.1', '21.0.0') == 1
+    assert compare_versions('21.0.1', '21.0') == 0
 
 
 def test_hide_stack_trace_no_env_var():

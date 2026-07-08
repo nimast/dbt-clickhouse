@@ -32,7 +32,7 @@ from dbt.adapters.clickhouse.errors import (
 from dbt.adapters.clickhouse.logger import logger
 from dbt.adapters.clickhouse.query import quote_identifier
 from dbt.adapters.clickhouse.relation import ClickHouseRelation, ClickHouseRelationType
-from dbt.adapters.clickhouse.util import engine_can_atomic_exchange
+from dbt.adapters.clickhouse.util import compare_versions, engine_can_atomic_exchange
 from dbt.adapters.contracts.relation import Path, RelationConfig
 from dbt.adapters.events.types import ConstraintNotSupported
 from dbt.adapters.sql import SQLAdapter
@@ -149,6 +149,14 @@ class ClickHouseAdapter(SQLAdapter):
         if conn and conn.credentials.database_engine:
             return f'ENGINE {conn.credentials.database_engine}'
         return ''
+
+    @available
+    def is_before_version(self, version: str) -> bool:
+        conn = self.connections.get_if_exists()
+        if conn:
+            server_version = conn.handle.server_version
+            return compare_versions(version, server_version) > 0
+        return False
 
     @available.parse_none
     def supports_atomic_exchange(self) -> bool:
